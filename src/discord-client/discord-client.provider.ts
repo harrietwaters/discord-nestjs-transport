@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-// import {isNil} from 'lodash';
 import * as Discord from 'discord.js';
 
 interface DiscordTransportConfigOptions {
