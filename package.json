@@ -5,9 +5,13 @@
   "author": "Harold Waters",
   "private": true,
   "license": "MIT",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.ts",
+  "prepublish": "nest build:prod",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
+    "build:prod": "nest build --config tsconfig.build.json",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
