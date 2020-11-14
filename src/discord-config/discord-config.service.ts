@@ -3,9 +3,13 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class DiscordConfigService {
-  constructor(private readonly configService: ConfigService) {}
+  private token: string;
+
+  constructor(config: ConfigService) {
+    this.token = config.get('token');
+  }
 
   get discordClientToken(): string {
-    return this.configService.get<string>('discordClientToken');
+    return this.token;
   }
 }

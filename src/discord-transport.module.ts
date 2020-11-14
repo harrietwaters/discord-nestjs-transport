@@ -1,16 +1,28 @@
-import { Module } from '@nestjs/common';
+import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config/dist/config.module';
-import discordConfig from './discord-config/discord-config.config';
 import { DiscordClientProvider } from './discord-client/discord-client.provider';
 import { DiscordConfigService } from './discord-config/discord-config.service';
 
-@Module({
-  imports: [
-    ConfigModule.forRoot({
-      load: [discordConfig],
-    }),
-  ],
-  providers: [DiscordClientProvider, DiscordConfigService],
-  exports: [DiscordClientProvider, DiscordConfigService],
-})
-export class DiscordTransportModule {}
+interface DiscordModuleOptions {
+  token: string;
+}
+
+@Module({})
+export class DiscordTransportModule {
+  static register(options: DiscordModuleOptions): DynamicModule {
+    return {
+      module: DiscordTransportModule,
+      imports: [
+        ConfigModule.forRoot({
+          load: [
+            () => {
+              return { token: options.token };
+            },
+          ],
+        }),
+      ],
+      providers: [DiscordClientProvider, DiscordConfigService],
+      exports: [DiscordClientProvider, DiscordConfigService],
+    };
+  }
+}

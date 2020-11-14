@@ -11,7 +11,7 @@
     "build": "nest build",
     "build:prod": "nest build --config tsconfig.build.json",
     "prepublish": "npm run build:prod",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

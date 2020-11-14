@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as Discord from 'discord.js';
+import { DiscordConfigService } from '../discord-config';
 
 interface DiscordTransportConfigOptions {
   token: string;
@@ -13,10 +14,10 @@ export type DiscordClientProviderOptions = DiscordTransportConfigOptions &
 export class DiscordClientProvider {
   private readonly logger: Logger;
   private readonly _client: Discord.Client;
-  private readonly configService: ConfigService<Record<string, any>>;
+  private readonly config: DiscordConfigService;
 
-  constructor(configService: ConfigService) {
-    this.configService = configService;
+  constructor(config: DiscordConfigService) {
+    this.config = config;
     this._client = new Discord.Client();
 
     this._client.on('ready', () => this.logger.log('Discord client is ready'));
@@ -27,7 +28,7 @@ export class DiscordClientProvider {
   }
 
   onModuleInit() {
-    return this._client.login(this.configService.get('discordClientToken'));
+    return this._client.login(this.config.discordClientToken);
   }
 
   public get client(): Discord.Client {
