@@ -1,16 +1,16 @@
 {
   "name": "@harold-waters/discord-nestjs-transport",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A NestJS Custom Transport for Discord",
   "author": "Harold Waters",
   "license": "MIT",
   "types": "dist/index.d.ts",
   "main": "dist/index.ts",
-  "prepublish": "nest build:prod",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
     "build:prod": "nest build --config tsconfig.build.json",
+    "prepublish": "npm run build:prod",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "format:fix": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
