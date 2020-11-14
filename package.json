@@ -5,7 +5,7 @@
   "author": "Harold Waters",
   "license": "MIT",
   "types": "dist/index.d.ts",
-  "main": "dist/index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
