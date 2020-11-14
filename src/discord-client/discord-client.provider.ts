@@ -27,10 +27,6 @@ export class DiscordClientProvider {
     this._client.on('error', err => this.logger.error(err));
   }
 
-  onModuleInit() {
-    return this._client.login(this.config.discordClientToken);
-  }
-
   public get client(): Discord.Client {
     return this._client;
   }

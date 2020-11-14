@@ -30,10 +30,7 @@ export class DiscordTransport extends Server
   public listen(callback: () => void): void {
     this.client.login(this.token).then(() => {
       this.bindHandlers();
-      if (typeof callback === 'function') {
-        return callback();
-      }
-      return callback;
+      return callback();
     });
   }
 
