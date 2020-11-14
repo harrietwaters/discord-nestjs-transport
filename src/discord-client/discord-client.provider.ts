@@ -16,7 +16,8 @@ export class DiscordClientProvider {
   private readonly _client: Discord.Client;
   private readonly config: DiscordConfigService;
 
-  constructor(config: DiscordConfigService) {
+  constructor(config: DiscordConfigService, logger: Logger) {
+    this.logger = logger;
     this.config = config;
     this._client = new Discord.Client();
 
@@ -29,5 +30,20 @@ export class DiscordClientProvider {
 
   public get client(): Discord.Client {
     return this._client;
+  }
+
+  public async login(): Promise<void> {
+    this.client.login(this.config.discordClientToken);
+  }
+
+  public async subscribeEvent(
+    event: string,
+    handler: (...args: any) => any,
+  ): Promise<void> {
+    this.client.on(event, handler);
+  }
+
+  public destroy() {
+    this.client.destroy();
   }
 }

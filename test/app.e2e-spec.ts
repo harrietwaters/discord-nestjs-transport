@@ -4,7 +4,6 @@ import { INestMicroservice } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as Discord from 'discord.js';
 import { DiscordClientProvider } from '../src/discord-client/discord-client.provider';
-import { DiscordConfigService } from '../src/discord-config/discord-config.service';
 import { DiscordTransport } from '../src/discord-transport';
 import { DiscordTransportModule } from '../src/discord-transport.module';
 import {
@@ -62,7 +61,7 @@ describe('Discord Custom Transport', () => {
     const discordClientProvider = moduleFixture.get(DiscordClientProvider);
     discordClient = discordClientProvider.client;
 
-    discordTransport = new DiscordTransport(discordClientProvider);
+    discordTransport = new DiscordTransport({ client: discordClientProvider });
 
     app = await moduleFixture.createNestMicroservice({
       strategy: discordTransport,

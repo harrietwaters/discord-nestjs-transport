@@ -1,4 +1,8 @@
-import { Server, CustomTransportStrategy } from '@nestjs/microservices';
+import {
+  Server,
+  CustomTransportStrategy,
+  WritePacket,
+} from '@nestjs/microservices';
 import {} from '@nestjs/common';
 import * as _ from 'lodash';
 import * as Discord from 'discord.js';
@@ -7,7 +11,7 @@ import { Observable } from 'rxjs';
 import { DiscordClientProvider } from './discord-client/discord-client.provider';
 
 interface DiscordTransportConfigOptions {
-  token: string;
+  client: DiscordClientProvider;
 }
 
 export type DiscordTransportOptions = DiscordTransportConfigOptions &
@@ -15,20 +19,15 @@ export type DiscordTransportOptions = DiscordTransportConfigOptions &
 
 export class DiscordTransport extends Server
   implements CustomTransportStrategy {
-  private readonly client: Discord.Client;
+  private readonly client: DiscordClientProvider;
   private readonly token: string;
-  constructor(client: DiscordClientProvider) {
+  constructor(opts: DiscordTransportConfigOptions) {
     super();
-
-    this.client = client.client;
-  }
-
-  public getDiscordClient(): Discord.Client {
-    return this.client;
+    this.client = opts.client;
   }
 
   public listen(callback: () => void): void {
-    this.client.login(this.token).then(() => {
+    this.client.login().then(() => {
       this.bindHandlers();
       return callback();
     });
@@ -39,16 +38,20 @@ export class DiscordTransport extends Server
       (handler, pattern: keyof Discord.ClientEvents) => {
         if (!handler.isEventHandler) return;
         const deuniqifiedPattern = pattern.split('-').shift();
-        this.client.on(deuniqifiedPattern, async (eventData: any) => {
+        this.client.subscribeEvent(deuniqifiedPattern, (eventData: any) => {
           const ctx = new DiscordContext([eventData]);
 
-          const send = _.get(eventData, 'channel.send', _.identity);
-
-          const respond = (response: any): void | Promise<Discord.Message> => {
-            return response && send(response);
+          const respond = (
+            response: WritePacket,
+          ): void | Promise<Discord.Message> => {
+            return (
+              typeof response.response === 'string' &&
+              eventData?.channel?.send &&
+              eventData.channel.send(response.response)
+            );
           };
           const response$ = this.transformToObservable(
-            await handler(eventData.content, ctx),
+            handler(eventData.content, ctx),
           ) as Observable<any>;
 
           response$ && this.send(response$, respond);
@@ -57,7 +60,7 @@ export class DiscordTransport extends Server
     );
   }
 
-  public async close(): Promise<void> {
+  public close() {
     this.client.destroy();
   }
 }
