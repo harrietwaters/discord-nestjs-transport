@@ -1,7 +1,7 @@
 import { Controller, UseGuards } from '@nestjs/common';
 import { Ctx, Payload } from '@nestjs/microservices';
 import * as _ from 'lodash';
-import { DiscordEvent } from '../src/decorators/discord-event';
+import { DiscordEvent } from '../src/decorators/discord-event.decorator';
 import { DiscordContext } from '../src/discord-context';
 import { ContainsText } from '../src/guards/contains-text.guard';
 
