@@ -5,7 +5,7 @@ const Discord: any = jest.genMockFromModule('discord.js');
 
 export const _login = jest.fn().mockResolvedValue('snowflake');
 class ClientMock extends EventEmitter {
-  login = _login;
+    login = _login;
 }
 
 Discord.Client = ClientMock;
