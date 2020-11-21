@@ -1,66 +1,46 @@
-import {
-  Server,
-  CustomTransportStrategy,
-  WritePacket,
-} from '@nestjs/microservices';
-import {} from '@nestjs/common';
-import * as _ from 'lodash';
+import { CustomTransportStrategy, Server } from '@nestjs/microservices';
 import * as Discord from 'discord.js';
-import { DiscordContext } from './discord-context';
 import { Observable } from 'rxjs';
-import { DiscordClientProvider } from './discord-client/discord-client.provider';
+import { DiscordContext } from './discord-context';
 
-interface DiscordTransportConfigOptions {
-  client: DiscordClientProvider;
+export interface DiscordLoginOptions {
+    token: string;
 }
 
-export type DiscordTransportOptions = DiscordTransportConfigOptions &
-  Partial<Discord.ClientOptions>;
+export type DiscordTransportOptions = Partial<Discord.ClientOptions> & DiscordLoginOptions;
 
-export class DiscordTransport extends Server
-  implements CustomTransportStrategy {
-  private readonly client: DiscordClientProvider;
-  private readonly token: string;
-  constructor(opts: DiscordTransportConfigOptions) {
-    super();
-    this.client = opts.client;
-  }
+export class DiscordTransport extends Server implements CustomTransportStrategy {
+    private readonly client: Discord.Client;
+    private readonly token: string;
+    constructor(opts: DiscordTransportOptions) {
+        super();
+        this.client = new Discord.Client(opts);
+        this.token = opts.token;
+    }
 
-  public listen(callback: () => void): void {
-    this.client.login().then(() => {
-      this.bindHandlers();
-      return callback();
-    });
-  }
+    public listen(callback: () => void): void {
+        this.client.login(this.token).then(() => this.bindHandlers().then(callback));
+    }
 
-  public bindHandlers() {
-    this.messageHandlers.forEach(
-      (handler, pattern: keyof Discord.ClientEvents) => {
-        if (!handler.isEventHandler) return;
-        const deuniqifiedPattern = pattern.split('-').shift();
-        this.client.subscribeEvent(deuniqifiedPattern, (eventData: any) => {
-          const ctx = new DiscordContext([eventData]);
+    public async bindHandlers() {
+        this.messageHandlers.forEach((handler, pattern: keyof Discord.ClientEvents) => {
+            if (!handler.isEventHandler) return;
+            const deuniqifiedPattern = pattern.split('-').shift();
+            this.client.on(deuniqifiedPattern, async (...args: any[]) => {
+                const ctx = new DiscordContext<any>(...args);
 
-          const respond = (
-            response: WritePacket,
-          ): void | Promise<Discord.Message> => {
-            return (
-              typeof response.response === 'string' &&
-              eventData?.channel?.send &&
-              eventData.channel.send(response.response)
-            );
-          };
-          const response$ = this.transformToObservable(
-            handler(eventData.content, ctx),
-          ) as Observable<any>;
+                const content = (args[0] as Discord.Message).cleanContent;
 
-          response$ && this.send(response$, respond);
+                const response$ = this.transformToObservable(
+                    await handler(content, ctx),
+                ) as Observable<any>;
+
+                response$ && this.send(response$, () => true);
+            });
         });
-      },
-    );
-  }
+    }
 
-  public close() {
-    this.client.destroy();
-  }
+    public close() {
+        this.client.destroy();
+    }
 }

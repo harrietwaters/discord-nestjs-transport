@@ -1,1 +1,1 @@
-export * from './DiscordEvent';
+export * from './discord-event';

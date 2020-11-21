@@ -1,17 +1,19 @@
 import { BaseRpcContext } from '@nestjs/microservices/ctx-host/base-rpc.context';
 import * as Discord from 'discord.js';
 
-type DiscordContextArgs = [Discord.Message];
+type ClientEvent = keyof Discord.ClientEvents;
+type DiscordEventArgs<T extends ClientEvent> = Discord.ClientEvents[T];
 
-export class DiscordContext extends BaseRpcContext<DiscordContextArgs> {
-  constructor(args: DiscordContextArgs) {
-    super(args);
-  }
+export class DiscordContext<T extends ClientEvent> extends BaseRpcContext<DiscordEventArgs<T>> {
+    constructor(...args: DiscordEventArgs<T>) {
+        super(args);
+    }
 
-  /**
-   * Returns the Discord Message instance
-   */
-  getMessage(): Discord.Message {
-    return this.args[0];
-  }
+    getArgs(): DiscordEventArgs<T> {
+        return super.getArgs();
+    }
+
+    getArgByIndex<I extends number>(index: I): DiscordEventArgs<T>[I] {
+        return this.args[index];
+    }
 }

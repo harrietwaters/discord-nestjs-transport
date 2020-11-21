@@ -8,7 +8,10 @@ export class IgnoreAuthorGuard implements CanActivate {
         this.authorId = authorId;
     }
     canActivate(context: ExecutionContext): boolean {
-        const [, ctx] = context.getArgs();
-        return this.authorId === (ctx as DiscordContext).getMessage().author.id;
+        const rpcCtx = context.switchToRpc();
+        const ctx: DiscordContext<'message'> = rpcCtx.getContext();
+        const messageAuthor = ctx.getArgByIndex(0)?.author?.id;
+
+        return this.authorId === messageAuthor;
     }
 }

@@ -9,8 +9,9 @@ export class GenericGuard implements CanActivate {
         this.test = test;
     }
     canActivate(context: ExecutionContext): boolean {
-        const [, ctx] = context.getArgs();
-        const message = (ctx as DiscordContext).getMessage();
+        const rpcCtx = context.switchToRpc();
+        const ctx: DiscordContext<'message'> = rpcCtx.getContext();
+        const message = ctx.getArgByIndex(0);
         return this.test(message);
     }
 }

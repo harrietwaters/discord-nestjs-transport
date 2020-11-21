@@ -9,8 +9,9 @@ export class ContainsText implements CanActivate {
         this.re = _.isString(text) ? new RegExp(text, 'mi') : (text as RegExp);
     }
     canActivate(context: ExecutionContext): boolean {
-        const [, ctx] = context.getArgs();
-        const cleanContent = (ctx as DiscordContext).getMessage().cleanContent;
+        const rpcCtx = context.switchToRpc();
+        const ctx: DiscordContext<'message'> = rpcCtx.getContext();
+        const cleanContent = ctx.getArgByIndex(0)?.cleanContent;
 
         return this.re.test(cleanContent);
     }
