@@ -12,6 +12,8 @@ export type DiscordTransportOptions = Partial<Discord.ClientOptions> & DiscordLo
 export class DiscordTransport extends Server implements CustomTransportStrategy {
     private readonly client: Discord.Client;
     private readonly token: string;
+    private botId: string;
+
     constructor(opts: DiscordTransportOptions) {
         super();
         this.client = new Discord.Client(opts);
@@ -19,7 +21,11 @@ export class DiscordTransport extends Server implements CustomTransportStrategy 
     }
 
     public listen(callback: () => void): void {
-        this.client.login(this.token).then(() => this.bindHandlers().then(callback));
+        this.client.setMaxListeners(Infinity);
+        this.client.login(this.token).then(() => {
+            this.botId = this.client.user.id;
+            this.bindHandlers().then(callback);
+        });
     }
 
     public async bindHandlers() {
@@ -28,14 +34,24 @@ export class DiscordTransport extends Server implements CustomTransportStrategy 
             const deuniqifiedPattern = pattern.split('-').shift();
             this.client.on(deuniqifiedPattern, async (...args: any[]) => {
                 const ctx = new DiscordContext<any>(...args);
+                const message: Discord.Message = args[0];
 
-                const content = (args[0] as Discord.Message).cleanContent;
+                // We may want to listen to bot messages later, but for now just ignore them
+                if (message?.author?.id === this.botId) return;
+
+                const content = message.cleanContent;
 
                 const response$ = this.transformToObservable(
                     await handler(content, ctx),
                 ) as Observable<any>;
 
-                response$ && this.send(response$, () => true);
+                const reply = (res: any) => {
+                    if (typeof res.response === 'string') {
+                        return message.reply(res.response);
+                    }
+                };
+
+                response$ && this.send(response$, reply);
             });
         });
     }

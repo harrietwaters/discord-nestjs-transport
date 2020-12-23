@@ -1,12 +1,10 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { DiscordContext } from '../discord-context';
+import { setClassName } from '../utilities/set-class-name';
 
 @Injectable()
-export class IgnoreAuthorGuard implements CanActivate {
-    private readonly authorId: string;
-    constructor(authorId: string) {
-        this.authorId = authorId;
-    }
+abstract class IgnoreAuthorGuard implements CanActivate {
+    protected abstract authorId: string;
     canActivate(context: ExecutionContext): boolean {
         const rpcCtx = context.switchToRpc();
         const ctx: DiscordContext<'message'> = rpcCtx.getContext();
@@ -14,4 +12,12 @@ export class IgnoreAuthorGuard implements CanActivate {
 
         return this.authorId === messageAuthor;
     }
+}
+
+export function IgnoreAuthor(authorId: string): typeof IgnoreAuthorGuard {
+    class CustomIgnoreAuthor extends IgnoreAuthorGuard {
+        protected authorId = authorId;
+    }
+
+    return setClassName(CustomIgnoreAuthor, authorId);
 }

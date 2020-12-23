@@ -17,13 +17,13 @@ export class TestController {
     }
 
     @DiscordEvent('message')
-    @UseGuards(new ContainsText('msg'))
+    @UseGuards(ContainsText('msg'))
     textGuardTest(message: string) {
         return textGuardTestMock(message);
     }
 
     @DiscordEvent('message')
-    @UseGuards(new ContainsText(/^abc.*/))
+    @UseGuards(ContainsText(/^abc.*/))
     regExpGuardTest(message: string) {
         return regExpGuardTestMock(message);
     }
